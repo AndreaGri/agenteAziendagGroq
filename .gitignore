@@ -1,1 +1,17 @@
+# Credenziali e segreti
 .env
+
+# Database vettoriale (locale)
+db/
+
+# File di dati (PDF caricati)
+data/*.pdf
+
+# Python e Ambiente
+__pycache__/
+*.pyc
+venv/
+.pytest_cache/
+
+# Streamlit logs
+.streamlit/
