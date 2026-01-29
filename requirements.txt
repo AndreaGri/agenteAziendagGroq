@@ -1,6 +1,7 @@
 langchain
-langchain-groq
+langchain-ollama
 langgraph
+langchain-chroma
 langchain-community
 langchain-huggingface
 sentence-transformers

@@ -4,44 +4,33 @@ from database_manager import db_manager
 from agents.parser import DocumentParserAgent
 from graph import app_graph
 
-st.set_page_config(page_title="AI Human Capital", layout="wide")
+st.set_page_config(page_title="Local AI Human Capital", layout="wide")
 
-st.title("🚀 AI Sistema Valorizzazione Capitale Umano")
-st.sidebar.header("Caricamento Documenti")
+st.title("🦙 Local AI - Valorizzazione Capitale Umano")
+st.caption("Eseguito localmente su Ollama (Nessuna API Key richiesta)")
 
-# Sezione Upload
-uploaded_file = st.sidebar.file_uploader("Carica CV o Paper (PDF)", type="pdf")
-if uploaded_file:
-    with open(f"data/{uploaded_file.name}", "wb") as f:
-        f.write(uploaded_file.getbuffer())
-    
-    if st.sidebar.button("Ingerisci Documento"):
-        with st.spinner("Analisi in corso..."):
+with st.sidebar:
+    st.header("📁 Ingestione")
+    uploaded_file = st.file_uploader("Carica CV (PDF)", type="pdf")
+    if uploaded_file and st.button("Analizza"):
+        path = f"data/{uploaded_file.name}"
+        with open(path, "wb") as f: f.write(uploaded_file.getbuffer())
+        with st.spinner("Ollama sta analizzando..."):
             parser = DocumentParserAgent()
-            data = parser.run(f"data/{uploaded_file.name}")
+            data = parser.run(path)
             db_manager.add_profile(data)
-            st.sidebar.success(f"Profilo di {data['name']} salvato!")
+            st.success(f"Aggiunto: {data['name']}")
 
-# Sezione Chat / Ricerca
-query = st.text_input("Cerca un esperto (es: 'Chi sa usare la spettroscopia IR a Milano?')")
+query = st.text_input("🔍 Cerca competenze nel team:", placeholder="Es: Chi conosce MongoDB?")
 
 if query:
-    with st.spinner("L'Orchestratore sta consultando gli agenti..."):
-        # Esecuzione del Grafo
-        inputs = {"query": query}
-        result = app_graph.invoke(inputs)
-        
+    with st.spinner("L'Orchestratore locale sta elaborando..."):
+        result = app_graph.invoke({"query": query})
         experts = result.get("final_output", {}).get("experts", [])
         
         if not experts:
-            st.warning("Nessun esperto trovato con criteri sufficientemente validi.")
-        else:
-            for exp in experts:
-                with st.expander(f"👤 {exp['name']} (Score: {exp['critic_score']}/10)"):
-                    st.write(f"**Skills:** {exp['skills']}")
-                    st.write(f"**Giudizio Critic:** {exp['critique']}")
-                    st.divider()
-                    st.subheader("💡 Sinergie e Opportunità")
-                    st.write(exp['synergies']['suggested_collaborations'])
-                    st.json(exp['synergies']['potential_projects'])
-
+            st.warning("Nessun match trovato.")
+        for exp in experts:
+            with st.expander(f"👤 {exp['name']} (Score: {exp['critic_score']}/10)"):
+                st.write(f"**Skills:** {exp['skills']}")
+                st.info(f"**Analisi:** {exp['critique']}")
